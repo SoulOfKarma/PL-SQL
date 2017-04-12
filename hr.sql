@@ -35,3 +35,14 @@ begin
  having min(salary) = (select min(salary) from employees);
  DBMS_OUTPUT.put_line('El empleado '||v_fname||' '||v_lname||' es el empleado con el salario mas bajo');
  end;
+  
+ DECLARE 
+ v_comision number(5);
+ begin
+ select 
+ ROUND(avg(salary*NVL(COMMISSION_PCT,0)),0)
+ into v_comision
+ from employees;
+ DBMS_OUTPUT.put_line('El promedio es $'||v_comision);
+end;
+
