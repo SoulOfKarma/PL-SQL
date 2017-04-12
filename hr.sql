@@ -46,3 +46,28 @@ begin
  DBMS_OUTPUT.put_line('El promedio es $'||v_comision);
 end;
 
+SET SERVEROUTPUT ON;
+DECLARE
+v_dname varchar(20);
+v_did number(3);
+v_manager number(4);
+v_location number(4);
+v_countEmp number(3); 
+begin
+select d.department_name,
+d.department_id,
+d.manager_id,
+d.location_id,
+count(e.employee_id)
+into v_dname,v_did,v_manager,v_location,v_countEmp
+ from departments d join employees e  
+ on(d.department_id=e.department_id)
+ group by d.department_name,
+ d.department_id,d.manager_id,
+ d.location_id
+ having count(e.employee_id)=
+ (select count(employee_id)
+ from employees where department_id=50);
+ DBMS_OUTPUT.put_line('La Informacion del departamento con mayor cantidad de empleados es la siguiente:');
+ DBMS_OUTPUT.put_line('Identificacion '||v_did|| ' ');
+end;
