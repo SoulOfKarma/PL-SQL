@@ -73,5 +73,20 @@ into v_dname,v_did,v_manager,v_location,v_countEmp
  'Nombre: '||v_dname||chr(13)||
  'Jefe: '||v_manager||chr(13)||
  'Ubicacion: '||v_location);
- 
 end;
+
+ DECLARE
+ v_fname varchar2(20);
+ v_lname varchar2(20);
+ v_salary varchar2(20);
+ v_bono number(5);
+ begin
+ select first_name,last_name,to_char(salary,'$9,999'),
+ salary*(to_number(substr(salary,0,1))/100)
+ into v_fname,v_lname,v_salary,v_bono
+ from employees
+ group by first_name,last_name,salary
+ having min(salary) = (select min(salary) from employees);
+ DBMS_OUTPUT.put_line('El salario del empleado '||v_fname||' '||v_lname||' es de: '||v_salary||chr(13)||
+ 'Por lo tanto su bono es de $'||v_bono);
+ end;
