@@ -68,6 +68,10 @@ into v_dname,v_did,v_manager,v_location,v_countEmp
  having count(e.employee_id)=
  (select count(employee_id)
  from employees where department_id=50);
- DBMS_OUTPUT.put_line('La Informacion del departamento con mayor cantidad de empleados es la siguiente:');
- DBMS_OUTPUT.put_line('Identificacion '||v_did|| ' ');
+ DBMS_OUTPUT.put_line('La Informacion del departamento con mayor cantidad de empleados es la siguiente:'||chr(13)||
+ 'Identificacion: '||v_did||chr(13)||
+ 'Nombre: '||v_dname||chr(13)||
+ 'Jefe: '||v_manager||chr(13)||
+ 'Ubicacion: '||v_location);
+ 
 end;
