@@ -1,0 +1,112 @@
+SET SERVEROUTPUT ON;
+DECLARE
+v_codmin NUMBER(4);
+v_codmax NUMBER(4);
+v_codasimin NUMBER(4);
+v_codisimin_ant NUMBER(4);
+v_codasimax NUMBER(4);
+v_codalu NUMBER(4);
+v_codasi NUMBER(4);
+v_cont_val NUMBER(4);
+v_sit_final VARCHAR2(30);
+v_obs_sitfinal VARCHAR2(80);
+v_ultimo_dig NUMBER(5);
+v_suma FLOAT(5);
+v_porc_asi NUMBER(3);
+BEGIN
+SELECT MAX(COD_ALUMNO)INTO v_codmax FROM ALUMNO;
+SELECT MIN(COD_ALUMNO)INTO v_codmin FROM ALUMNO;
+SELECT MAX(COD_ASIGNATURA)INTO v_codasimax FROM ASIGNATURA;
+SELECT MIN(COD_ASIGNATURA)INTO v_codasimin FROM ASIGNATURA;
+WHILE v_codmin <= v_codmax LOOP
+v_codasimin := 1211;
+v_codisimin_ant :=0;
+   WHILE v_codasimin <= v_codasimax LOOP
+    v_cont_val:=0;
+    SELECT COUNT(*) as CANTIDAD INTO v_cont_val FROM NOTA_ALUMNO WHERE COD_ALUMNO = v_codmin AND COD_ASIGNATURA = v_codasimin;
+    if(v_cont_val>0 AND v_codisimin_ant!=v_codasimin)THEN
+      SELECT COD_ALUMNO,COD_ASIGNATURA,
+       CASE
+       WHEN NOTA1 IS NULL THEN 'P'
+       WHEN NOTA2 IS NULL THEN 'P'
+       WHEN NOTA3 IS NULL THEN 'P'
+       WHEN NOTA4 IS NULL THEN 'P'
+       WHEN NOTA5 IS NULL THEN 'P'
+       ELSE 'A' END,
+       CASE WHEN 
+       (CASE
+       WHEN NOTA1 IS NULL THEN 'P'
+       WHEN NOTA2 IS NULL THEN 'P'
+       WHEN NOTA3 IS NULL THEN 'P'
+       WHEN NOTA4 IS NULL THEN 'P'
+       WHEN NOTA5 IS NULL THEN 'P'
+       END) = 'P' THEN 
+       'El alumno debe rendir prueba recuperativa '
+       END,
+       (SELECT SUBSTR(COD_ASIGNATURA,-1,1)FROM NOTA_ALUMNO WHERE COD_ASIGNATURA = v_codasimin and COD_ALUMNO = v_codmin),
+       (SELECT (NOTA1+NOTA2+NOTA3+NOTA4+NOTA5)/5 FROM NOTA_ALUMNO WHERE COD_ASIGNATURA = v_codasimin and COD_ALUMNO = v_codmin),
+       (SELECT PORC_ASISTENCIA FROM ASISTENCIA_ALUMNO WHERE COD_ASIGNATURA = v_codasimin and COD_ALUMNO = v_codmin)
+       INTO v_codalu,v_codasi,v_sit_final,v_obs_sitfinal,v_ultimo_dig,v_suma,v_porc_asi 
+       FROM NOTA_ALUMNO WHERE COD_ASIGNATURA = v_codasimin and COD_ALUMNO = v_codmin;
+      IF v_ultimo_dig BETWEEN 1 AND 2
+       AND v_suma>=4.8
+       AND v_porc_asi>=90
+       THEN
+       v_sit_final := 'A' ;
+       v_obs_sitfinal := 'Aprobado';
+       ELSIF 
+       v_ultimo_dig BETWEEN 1 AND 2
+       AND v_suma>=4.8 
+       AND v_porc_asi<=90 THEN
+       v_sit_final := 'P' ;
+       v_obs_sitfinal := 'Este caso debe ser estudiado por el profesor de la asignatura';
+       ELSIF 
+       v_ultimo_dig BETWEEN 1 AND 2
+       AND v_suma BETWEEN 4.3 AND 4.8
+       AND v_porc_asi>=90 THEN
+        v_sit_final := 'P' ;
+       v_obs_sitfinal := 'Este caso debe ser estudiado por la direccion';
+       ELSIF 
+       v_ultimo_dig BETWEEN 1 AND 2
+       AND v_suma<=4.8
+       AND v_porc_asi<=90 THEN
+        v_sit_final := 'R' ;
+       v_obs_sitfinal := 'Reprobado';
+      
+       END IF;
+      IF v_ultimo_dig BETWEEN 3 AND 4
+       AND v_suma>=4.4
+       AND v_porc_asi>=70
+       THEN
+       v_sit_final := 'A' ;
+       v_obs_sitfinal := 'Aprobado';
+       ELSIF 
+       v_ultimo_dig BETWEEN 3 AND 4
+       AND v_suma>=4.4
+       AND v_porc_asi<=70 THEN
+       v_sit_final := 'P' ;
+       v_obs_sitfinal := 'Este caso debe ser estudiado por el profesor de la asignatura';
+       ELSIF 
+       v_ultimo_dig BETWEEN 3 AND 4 
+       AND v_suma BETWEEN 4.4 AND 4.1
+       AND v_porc_asi>=70 THEN
+        v_sit_final := 'P' ;
+       v_obs_sitfinal := 'Este caso debe ser estudiado por la direccion';
+       ELSIF 
+       v_ultimo_dig BETWEEN 3 AND 4
+       AND v_suma<=4.4 OR v_suma IS NULL
+       AND v_porc_asi<=70 THEN
+        v_sit_final := 'R' ;
+       v_obs_sitfinal := 'Reprobado';
+      
+       END IF;
+         DBMS_OUTPUT.PUT_LINE(v_codalu||' '||v_codasi||' '||v_sit_final||' '||v_obs_sitfinal);
+      end if;
+       
+      
+       v_codisimin_ant := v_codasimin;
+       v_codasimin := v_codasimin+1;
+     END LOOP;
+      v_codmin := v_codmin +1;
+  END LOOP;
+END;
