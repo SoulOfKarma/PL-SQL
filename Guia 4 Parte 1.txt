@@ -1,0 +1,118 @@
+--GUIA 4 Parte 1
+--Parte A
+SET SERVEROUTPUT ON;
+DECLARE
+v_firstname VARCHAR2(20);
+v_lastname  VARCHAR2(20);
+v_salary    NUMBER(7);
+v_jobname   VARCHAR2(30);
+v_promedio  NUMBER(8);
+BEGIN
+SELECT e.first_name,
+e.last_name,
+e.salary,
+j.JOB_TITLE,
+(SELECT ROUND(AVG(SALARY))FROM EMPLOYEES)
+INTO v_firstname,v_lastname,v_salary,v_jobname,v_promedio
+FROM EMPLOYEES e join JOBS j
+ON(e.JOB_ID=j.JOB_ID)
+WHERE e.employee_id = 105;
+IF v_salary > v_promedio THEN
+  DBMS_OUTPUT.PUT_LINE(v_firstname||' '||v_lastname||' Trabaja como '||v_jobname||' y posee un salario igual o superior al promedio');
+ELSE 
+  DBMS_OUTPUT.PUT_LINE(v_firstname||' '||v_lastname||' Trabaja como '||v_jobname||' y posee un salario igual o menor al promedio');
+  END IF;
+END;
+
+--Parte B
+SET SERVEROUTPUT ON;
+DECLARE
+v_idempleado NUMBER(3);
+v_salary     NUMBER(8);
+v_contador   NUMBER(4):=100;
+BEGIN
+WHILE v_contador <=120 LOOP
+SELECT EMPLOYEE_ID,SALARY 
+INTO v_idempleado,v_salary
+FROM EMPLOYEES
+WHERE EMPLOYEE_ID = v_contador;
+ IF v_salary > 10000 THEN
+ DBMS_OUTPUT.PUT_LINE('El salario actual del empleado '||v_idempleado||' es de '||v_salary||'. Es un excelente salario');
+ ELSIF v_salary BETWEEN 9000 AND 10000 THEN
+ DBMS_OUTPUT.PUT_LINE('El salario actual del empleado '||v_idempleado||' es de '||v_salary||'. Es un salario normal');
+  ELSIF v_salary < 9000 THEN
+ DBMS_OUTPUT.PUT_LINE('El salario actual del empleado '||v_idempleado||' es de '||v_salary||' Le deben aumentar el salario');
+ END IF;
+ v_contador := v_contador+1;
+ END LOOP;
+END;
+
+--Parte C
+CREATE TABLE CALCULO_REMUN
+(ID_EMPLEADO NUMBER(6) NOT NULL,VALOR_SALARIO NUMBER(8) NOT NULL,
+VALOR_COMISION NUMBER(8) NOT NULL,VALOR_COLACION NUMBER(8)NOT NULL,
+VALOR_MOVILIZACION NUMBER(8) NOT NULL,VALOR_DESCTO_SALUD NUMBER(8)NOT NULL,
+VALOR_DESCTO_PREV NUMBER (8)NOT NULL,VALOR_ALC_LIQUIDO NUMBER(8)NOT NULL,
+FECHA_CALCULO DATE);
+
+DECLARE
+v_idemp NUMBER(3);
+v_salary NUMBER(6);
+v_commision NUMBER(6);
+v_colacion NUMBER(6);
+v_movilizacion NUMBER(6);
+v_descto_salud NUMBER(6);
+v_descto_prev NUMBER(6);
+v_valorliq NUMBER(6);
+v_date DATE;
+v_minid NUMBER(3);
+v_maxid NUMBER(3);
+BEGIN
+SELECT MIN(employee_id)INTO v_minid FROM EMPLOYEES;
+SELECT MAX(employee_id)INTO v_maxid FROM EMPLOYEES;
+WHILE v_minid < v_maxid LOOP
+SELECT EMPLOYEE_ID,SALARY,ROUND(NVL(SALARY*COMMISSION_PCT,0)),
+ROUND((SALARY*5.5)/100),ROUND((SALARY*17.8)/100),
+ROUND((SALARY*7.8)/100),ROUND((SALARY*6.5)/100),
+ROUND(SALARY+NVL(SALARY*COMMISSION_PCT,0)+((SALARY*5.5)/100)+((SALARY*17.8)/100)
+-((SALARY*7.8)/100)-((SALARY*6.5)/100)),TO_CHAR(SYSDATE,'DD/MM/YYYY')
+INTO v_idemp,v_salary,v_commision,v_colacion,v_movilizacion,v_descto_salud,v_descto_prev,v_valorliq,v_date
+FROM EMPLOYEES
+WHERE EMPLOYEE_ID = v_minid;
+INSERT INTO CALCULO_REMUN VALUES(v_idemp,v_salary,v_commision,v_colacion,v_movilizacion,v_descto_salud,v_descto_prev,v_valorliq,v_date);
+v_minid := v_minid + 1;
+END LOOP;
+END;
+
+SELECT * FROM CALCULO_REMUN;
+
+--Parte D
+DECLARE
+v_fname  VARCHAR2(20);
+v_lname  VARCHAR2(20);
+v_salary NUMBER(6);
+v_jobtitle VARCHAR2(50);
+v_minid NUMBER(3);
+v_maxid NUMBER(3);
+v_cont NUMBER(3):= 1;
+BEGIN
+SELECT MIN(employee_id)INTO v_minid FROM EMPLOYEES;
+SELECT MAX(employee_id)INTO v_maxid FROM EMPLOYEES;
+DBMS_OUTPUT.PUT_LINE(RPAD(' ',25,' ')||'LISTADO DE EMPLEADOS');
+DBMS_OUTPUT.PUT_LINE(RPAD(' ',90,'-'));
+DBMS_OUTPUT.PUT_LINE(' ORDEN '||RPAD(' ',9,' ')||'EMPLEADO'||RPAD(' ',23,' ')||'SALARIO'||RPAD(' ',6,' ')||'TRABAJO');
+DBMS_OUTPUT.PUT_LINE(RPAD(' ',90,'-'));
+WHILE v_minid < v_maxid LOOP
+SELECT e.first_name,
+e.last_name,
+e.SALARY,
+j.job_title
+INTO v_fname,v_lname,v_salary,v_jobtitle
+FROM EMPLOYEES e join JOBS j
+ON(e.JOB_ID=j.JOB_ID)
+WHERE e.EMPLOYEE_ID = v_minid;
+DBMS_OUTPUT.PUT_LINE('  '||RPAD(v_cont,10,' ')||RPAD(v_fname||' '||v_lname,20,' ')||RPAD(' ',9,' ')||TO_CHAR(v_salary,'999,999,999')||RPAD(' ',6,' ')||v_jobtitle);
+v_minid := v_minid + 1;
+v_cont := v_cont + 1;
+END LOOP;
+END;
